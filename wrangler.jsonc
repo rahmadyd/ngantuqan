@@ -1,0 +1,59 @@
+{
+  // ngantuqan — Cloudflare Workers configuration.
+  //
+  // The app is built by @opennextjs/cloudflare (see open-next.config.ts) and
+  // runs on the Workers runtime. `npm run deploy` builds and uploads it.
+  //
+  // The public values are inlined at build time by Next.js, so they must be
+  // set in the build environment as well as here. The secrets are never in
+  // this file — they are set with `wrangler secret put`.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "ngantuqan",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": [
+    // Node.js APIs — node:crypto, Buffer, and the Node middleware the
+    // Next.js 16 proxy runs on.
+    "nodejs_compat",
+    // The Worker may only fetch public addresses.
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "images": {
+    // Cloudflare's image transformations: the Worker resizes and converts the
+    // uploaded images on the edge. The free plan allows 5,000 unique
+    // transformations a month; without this binding the original file is
+    // served instead.
+    "binding": "IMAGES"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "ngantuqan"
+    }
+  ],
+  "vars": {
+    // Public values. The publishable key is public by design — it ships to
+    // the browser — but the service key never appears here.
+    "NEXT_PUBLIC_SITE_URL": "https://ngantuqan.com",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://YOUR-PROJECT.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_REPLACE_ME",
+    "NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET": "public-media",
+
+    "STUDIO_NAME": "ngantuqan",
+    "STUDIO_EMAIL": "hello@ngantuqan.studio",
+    "ADMIN_EMAIL": "admin@ngantuqan.studio",
+    "RESEND_FROM_EMAIL": "ngantuqan <hello@ngantuqan.studio>",
+    "PAYMENT_PROVIDER": "manual",
+
+    // Rate limiting for the public forms.
+    "RATE_LIMIT_MAX_REQUESTS": "5",
+    "RATE_LIMIT_WINDOW_SECONDS": "600"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

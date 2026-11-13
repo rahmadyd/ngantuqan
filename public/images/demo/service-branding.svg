@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="service-branding">
+  <rect width="1200" height="750" fill="#FFFDF7"/>
+  <circle cx="604" cy="572" r="102" fill="#FFE66D" opacity="0.40"/>
+  <polygon points="1151,-134 1333,12 1263,225 1029,239 1016,27" fill="#FFE66D" opacity="0.61"/>
+  <circle cx="1170" cy="569" r="90" fill="#FFE66D" opacity="0.41"/>
+  <circle cx="142" cy="594" r="131" fill="#FFE66D" opacity="0.39"/>
+  <rect x="96" y="585" width="264" height="9" rx="4.5" fill="#20243A" opacity="0.85"/>
+  <text x="96" y="727.5" font-family="Fredoka, Georgia, serif" font-size="150" font-weight="600" fill="#20243A" opacity="0.14">S</text>
+</svg>

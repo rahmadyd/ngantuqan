@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="product-brandkit-01">
+  <rect width="1200" height="750" fill="#FFFFFF"/>
+  <polygon points="453,357 493,427 410,429" fill="#8CE6C0" opacity="0.67"/>
+  <circle cx="54" cy="493" r="82" fill="#FFE66D" opacity="0.76"/>
+  <polygon points="538,110 636,257 615,396 476,374 425,252" fill="#8CE6C0" opacity="0.67"/>
+  <circle cx="794" cy="362" r="134" fill="#FFE66D" opacity="0.45"/>
+  <circle cx="12" cy="343" r="143" fill="#8CE6C0" opacity="0.55"/>
+  <rect x="716" y="26" width="261" height="168" rx="38" fill="#FFE66D" opacity="0.57" transform="rotate(45 836 146)"/>
+  <rect x="96" y="585" width="264" height="9" rx="4.5" fill="#20243A" opacity="0.85"/>
+  <text x="96" y="727.5" font-family="Fredoka, Georgia, serif" font-size="150" font-weight="600" fill="#20243A" opacity="0.14">P</text>
+</svg>

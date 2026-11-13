@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="service-presentation">
+  <rect width="1200" height="750" fill="#FFFDF7"/>
+  <rect x="1064" y="413" width="174" height="190" rx="43" fill="#FFE66D" opacity="0.43" transform="rotate(54 1200 549)"/>
+  <rect x="615" y="439" width="309" height="230" rx="53" fill="#8CE6C0" opacity="0.47" transform="rotate(70 779 603)"/>
+  <circle cx="789" cy="578" r="135" fill="#FFE66D" opacity="0.50"/>
+  <polygon points="47,-44 164,43 47,122 -102,43" fill="#8CE6C0" opacity="0.75"/>
+  <rect x="17" y="86" width="313" height="185" rx="42" fill="#FFE66D" opacity="0.73" transform="rotate(43 149 218)"/>
+  <polygon points="164,129 286,287 164,457 -17,287" fill="#8CE6C0" opacity="0.73"/>
+  <polygon points="774,339 831,440 681,461" fill="#FFE66D" opacity="0.81"/>
+  <rect x="96" y="585" width="264" height="9" rx="4.5" fill="#20243A" opacity="0.85"/>
+  <text x="96" y="727.5" font-family="Fredoka, Georgia, serif" font-size="150" font-weight="600" fill="#20243A" opacity="0.14">S</text>
+</svg>

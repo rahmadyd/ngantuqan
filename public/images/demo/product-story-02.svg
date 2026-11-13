@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="product-story-02">
+  <rect width="1200" height="750" fill="#FFFFFF"/>
+  <polygon points="450,374 533,577 315,606" fill="#FF6B6B" opacity="0.51"/>
+  <rect x="-107" y="173" width="156" height="159" rx="36" fill="#FFE66D" opacity="0.81" transform="rotate(49 7 287)"/>
+  <circle cx="221" cy="676" r="59" fill="#FF6B6B" opacity="0.81"/>
+  <rect x="244" y="255" width="129" height="90" rx="21" fill="#FFE66D" opacity="0.59" transform="rotate(16 308 320)"/>
+  <rect x="40" y="538" width="77" height="73" rx="17" fill="#FF6B6B" opacity="0.40" transform="rotate(14 92 590)"/>
+  <rect x="96" y="585" width="264" height="9" rx="4.5" fill="#20243A" opacity="0.85"/>
+  <text x="96" y="727.5" font-family="Fredoka, Georgia, serif" font-size="150" font-weight="600" fill="#20243A" opacity="0.14">P</text>
+</svg>

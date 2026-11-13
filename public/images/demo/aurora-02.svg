@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="aurora-02">
+  <rect width="1200" height="750" fill="#FFFFFF"/>
+  <rect x="386" y="323" width="242" height="203" rx="46" fill="#FFE66D" opacity="0.82" transform="rotate(31 531 468)"/>
+  <rect x="-74" y="443" width="188" height="151" rx="35" fill="#8CE6C0" opacity="0.68" transform="rotate(50 34 551)"/>
+  <polygon points="595,110 688,260 436,298" fill="#FFE66D" opacity="0.69"/>
+  <polygon points="714,309 807,366 773,478 656,475 607,362" fill="#8CE6C0" opacity="0.31"/>
+  <rect x="401" y="471" width="75" height="85" rx="19" fill="#FFE66D" opacity="0.66" transform="rotate(3 461 531)"/>
+  <rect x="96" y="585" width="264" height="9" rx="4.5" fill="#20243A" opacity="0.85"/>
+  <text x="96" y="727.5" font-family="Fredoka, Georgia, serif" font-size="150" font-weight="600" fill="#20243A" opacity="0.14">A</text>
+</svg>

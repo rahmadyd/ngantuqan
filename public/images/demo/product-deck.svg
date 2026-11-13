@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-label="product-deck">
+  <rect width="900" height="900" fill="#FFFFFF"/>
+  <circle cx="624" cy="886" r="237" fill="#4263EB" opacity="0.61"/>
+  <circle cx="41" cy="407" r="228" fill="#FFE66D" opacity="0.46"/>
+  <circle cx="145" cy="711" r="98" fill="#4263EB" opacity="0.51"/>
+  <rect x="15" y="425" width="211" height="158" rx="42" fill="#FFE66D" opacity="0.68" transform="rotate(19 121 530)"/>
+  <rect x="201" y="261" width="175" height="131" rx="35" fill="#4263EB" opacity="0.53" transform="rotate(63 289 348)"/>
+  <rect x="72" y="774" width="162" height="10.8" rx="5.4" fill="#20243A" opacity="0.8"/>
+</svg>

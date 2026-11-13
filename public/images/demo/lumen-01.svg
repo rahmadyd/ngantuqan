@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="lumen-01">
+  <rect width="1200" height="750" fill="#FFFFFF"/>
+  <circle cx="623" cy="610" r="46" fill="#4263EB" opacity="0.59"/>
+  <polygon points="1024,-95 1148,23 1124,201 952,163 906,25" fill="#4263EB" opacity="0.32"/>
+  <rect x="435" y="321" width="391" height="225" rx="51" fill="#4263EB" opacity="0.79" transform="rotate(29 595 482)"/>
+  <rect x="45" y="538" width="198" height="126" rx="29" fill="#4263EB" opacity="0.58" transform="rotate(15 135 628)"/>
+  <rect x="1039" y="183" width="157" height="165" rx="38" fill="#4263EB" opacity="0.72" transform="rotate(89 1157 301)"/>
+  <polygon points="537,260 662,467 404,472" fill="#4263EB" opacity="0.63"/>
+  <circle cx="288" cy="77" r="86" fill="#4263EB" opacity="0.37"/>
+  <rect x="96" y="585" width="264" height="9" rx="4.5" fill="#20243A" opacity="0.85"/>
+  <text x="96" y="727.5" font-family="Fredoka, Georgia, serif" font-size="150" font-weight="600" fill="#20243A" opacity="0.14">L</text>
+</svg>

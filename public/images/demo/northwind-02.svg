@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="northwind-02">
+  <rect width="1200" height="750" fill="#FFFDF7"/>
+  <polygon points="1081,270 1223,345 1183,531 977,534 971,355" fill="#4263EB" opacity="0.43"/>
+  <polygon points="456,41 624,214 568,422 365,394 317,223" fill="#FFE66D" opacity="0.64"/>
+  <polygon points="613,44 747,330 447,349" fill="#4263EB" opacity="0.42"/>
+  <polygon points="320,32 543,104 400,286 229,302 117,110" fill="#FFE66D" opacity="0.72"/>
+  <rect x="96" y="585" width="264" height="9" rx="4.5" fill="#20243A" opacity="0.85"/>
+  <text x="96" y="727.5" font-family="Fredoka, Georgia, serif" font-size="150" font-weight="600" fill="#20243A" opacity="0.14">N</text>
+</svg>

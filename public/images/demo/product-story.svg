@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-label="product-story">
+  <rect width="900" height="900" fill="#FFFFFF"/>
+  <circle cx="828" cy="612" r="315" fill="#4263EB" opacity="0.53"/>
+  <rect x="628" y="150" width="264" height="198" rx="53" fill="#FF6B6B" opacity="0.44" transform="rotate(78 761 282)"/>
+  <rect x="267" y="689" width="228" height="171" rx="46" fill="#4263EB" opacity="0.60" transform="rotate(22 380 803)"/>
+  <rect x="399" y="93" width="162" height="121" rx="32" fill="#FF6B6B" opacity="0.71" transform="rotate(79 480 174)"/>
+  <circle cx="428" cy="565" r="289" fill="#4263EB" opacity="0.80"/>
+  <rect x="72" y="774" width="162" height="10.8" rx="5.4" fill="#20243A" opacity="0.8"/>
+</svg>

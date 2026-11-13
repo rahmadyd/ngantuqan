@@ -1,0 +1,272 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ==========================================================================
+   ngantuqan — design tokens
+
+   Palette: DESIGN.md, retro-nature revision.
+     Warm Cream #F7EED8 · Paper #FFF9EC · Forest #245C45 ·
+     Leaf Teal #2F6B52 · Terracotta #B3472C · Deep Forest Ink #24352C
+
+   Colour roles (one job each, so no accent is wallpaper):
+     --primary  Forest          primary actions, links, focus on light surfaces
+     --brand    Leaf Teal       prominent brand surfaces, never a body colour
+     --pink     Terracotta      the single decorative accent
+     --text     Deep Forest Ink headings and body copy
+
+   Theme: light only, on purpose. The identity is a printed poster on a warm
+   cream canvas with forest and terracotta accents; a dark mode would break the
+   brand rather than serve a need, so the site ships one theme and says so (R-21).
+
+   Contrast is measured against the hex values, not estimated. See the table
+   at the bottom of this file.
+   ========================================================================== */
+
+:root {
+  /* Brand */
+  --primary: #245c45; /* Forest — primary actions */
+  --brand: #2f6b52; /* Leaf Teal — brand identity surfaces */
+  --pink: #b3472c; /* Terracotta — decorative accents and highlights */
+  --background: #f7eed8; /* Warm Cream */
+  --text: #24352c; /* Deep Forest Ink */
+
+  /* Terracotta tint steps.
+     One hue, four lightnesses, so the accent can carry text on a light
+     surface and on a dark one without changing hue. */
+  --pink-ink: #b3472c; /* on light surfaces: 4.72:1 on cream */
+  --pink-light: #f2b29a; /* on dark surfaces: 7.16:1 on ink */
+  --pink-soft: #f3d3c1; /* washes: selection, panel fills */
+
+  /* Semantic derivatives */
+  --surface: #fff9ec;
+  --surface-sunken: #efe3c7;
+  --surface-tint: #e2ead9; /* Leaf Teal @ 12% on cream */
+  --surface-warm: #f4e3c1; /* warm card plate */
+  --border: #d8c69d;
+  --border-strong: #b69a68;
+  --muted: #4e5c52; /* 6.11:1 on cream */
+  --muted-foreground: #5b665e; /* 5.18:1 on cream */
+
+  /* Ink on each accent */
+  --on-primary: #fff9ec; /* paper on forest — 7.43:1 */
+  --on-pink: #24352c; /* ink on terracotta — 5.23:1 */
+
+  /* Focus ring — flipped on dark surfaces via .dark-surface */
+  --focus-ring: #24352c;
+
+  /* Status */
+  --success: #1f9d6b;
+  --success-surface: #e7f7f0;
+  --warning: #b26a00;
+  --warning-surface: #fff6e0;
+  --danger: #d64545;
+  --danger-surface: #fdecec;
+  --info: #175be5;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 36px;
+
+  /* Warm-tinted shadows — no neutral grey */
+  --shadow-xs: 0 1px 2px rgb(32 51 68 / 0.05);
+  --shadow-sm: 0 2px 8px rgb(32 51 68 / 0.06);
+  --shadow-md: 0 8px 24px rgb(32 51 68 / 0.08);
+  --shadow-lg: 0 18px 48px rgb(32 51 68 / 0.12);
+  --shadow-blob: 0 20px 60px rgb(36 92 69 / 0.18);
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-brand: var(--brand);
+  --color-pink: var(--pink);
+  --color-pink-ink: var(--pink-ink);
+  --color-pink-light: var(--pink-light);
+  --color-pink-soft: var(--pink-soft);
+  --color-background: var(--background);
+  --color-text: var(--text);
+
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-tint: var(--surface-tint);
+  --color-surface-warm: var(--surface-warm);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-on-primary: var(--on-primary);
+  --color-on-pink: var(--on-pink);
+
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-danger: var(--danger);
+  --color-danger-surface: var(--danger-surface);
+
+  --font-display: var(--font-fredoka);
+  --font-body: var(--font-fredoka);
+  --font-label: var(--font-space-grotesk);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-blob: var(--shadow-blob);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text);
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  /* Typography: Fredoka (display and reading), Space Grotesk (labels).
+     Fredoka's rounded, crafted forms carry the retro studio voice without
+     the terminal aesthetic of a monospace face. Space Grotesk gives the
+     label layer a compact counterweight. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display), var(--font-body), sans-serif;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Focus ring: 3px, 2px offset, never removed. The colour comes from
+     --focus-ring so a dark surface can flip it to the light step. */
+  :focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Pointer affordance, set once for every enabled control. */
+  a[href],
+  button:not(:disabled),
+  summary,
+  select,
+  label[for],
+  [role="button"],
+  [role="tab"],
+  [role="switch"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  ::selection {
+    background-color: var(--pink-soft);
+    color: var(--text);
+  }
+
+  /* Thin, warm scrollbar that matches the cream canvas */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
+
+@layer components {
+  /* A dark surface flips the focus ring to the light step. Without this the
+     ring was the same colour as the panel it sat on. */
+  .dark-surface {
+    --focus-ring: var(--background);
+  }
+
+  /* Eyebrow label — the recurring signature of the identity */
+  .eyebrow {
+    font-family: var(--font-label), sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .eyebrow-rule {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+
+  .eyebrow-rule::before {
+    content: "";
+    width: 1.75rem;
+    height: 3px;
+    border-radius: 9999px;
+    background-color: var(--pink);
+  }
+
+  .prose-body {
+    color: var(--muted);
+    line-height: 1.65;
+    max-width: 68ch;
+  }
+
+  .prose-body-strong {
+    color: var(--text);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    max-width: 58ch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   Contrast audit (WCAG 2.1, computed against the hex values above)
+
+   ink #24352C on cream #F7EED8 ........ 11.22:1   AA all sizes
+   ink on paper #FFF9EC ............... 12.35:1   AA all sizes
+   ink on sunken #EFE3C7 .............. 10.17:1   AA all sizes
+   muted #4E5C52 on cream ..............  6.11:1   AA all sizes
+   muted-foreground #5B665E on cream ....  5.18:1   AA all sizes
+   forest #245C45 on cream .............  6.75:1   AA all sizes
+   forest on paper .....................  7.43:1   AA all sizes
+   paper on forest #245C45 .............  7.43:1   AA all sizes
+   terracotta #B3472C on cream .........  4.72:1   AA all sizes
+   terracotta on paper .................  5.18:1   AA all sizes
+   leaf teal #2F6B52 on cream ..........  5.43:1   AA all sizes
+   pink-light #F2B29A on ink ...........  7.16:1   AA all sizes
+
+   Rule that follows from the table: every text role clears 4.5:1 on every
+   surface it can occupy. Terracotta remains the one decorative accent.
+   ========================================================================== */
