@@ -36,4 +36,4 @@ The current design is too generic. I want to inject a vibrant, illustrative, ret
 ### REQUIRED OUTPUT & DELIVERY GATE
 1. Update the `page.tsx`, `tailwind.config.ts`, and any global CSS files to reflect these changes. Use standard Tailwind utilities.
 2. Before you finish your response, you MUST output the **Delivery Gate PASS/FAIL report** as required by `00-antislop.md`[cite: 7]. Specifically verify that C-1, C-2, and R-05 to R-31 have been respected, and explicitly confirm that NO layouts were changed outside the Hero section.
-3. Write a one-line reason (R-31) for the background color choice and the card border styling you implemented[cite: 7].
+3. Write a one-line reason (R-31) for the background color choice and the card border styling you implemented[cite: 7].`
