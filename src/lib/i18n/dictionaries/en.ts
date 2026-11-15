@@ -194,7 +194,7 @@ export const en = {
     title: "Design tools, ready to use.",
     lede: "Editable templates built from the same systems we use in client work. Buy once, download the source files, make them yours.",
     filterAll: "All products",
-    searchPlaceholder: "Search products by title",
+    searchPlaceholder: "Search products by title...",
     searchLabel: "Search products by title",
     sort: "Sort",
     sortNewest: "Newest",

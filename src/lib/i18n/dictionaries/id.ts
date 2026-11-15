@@ -197,7 +197,7 @@ export const id: Dictionary = {
     title: "Perangkat desain, siap pakai.",
     lede: "Template yang bisa diedit, dibangun dari sistem yang sama dengan yang kami pakai untuk kerja klien. Beli sekali, unduh berkas sumbernya, jadikan milik Anda.",
     filterAll: "Semua produk",
-    searchPlaceholder: "Cari produk berdasarkan judul",
+    searchPlaceholder: "Cari produk berdasarkan judul...",
     searchLabel: "Cari produk berdasarkan judul",
     sort: "Urutkan",
     sortNewest: "Terbaru",
