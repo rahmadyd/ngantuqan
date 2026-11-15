@@ -315,7 +315,7 @@ export function MobileNav({
                 );
               })}
 
-              <div className="mt-6 hidden max-[383px]:block">
+              <div className="mt-6 sm:hidden">
                 <LocaleToggle />
               </div>
 

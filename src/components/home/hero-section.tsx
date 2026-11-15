@@ -63,7 +63,7 @@ export async function HeroSection({ services }: { services: Service[] }) {
   };
 
   return (
-    <section className="relative isolate min-h-[860px] overflow-hidden bg-background px-0 pt-0 pb-0 md:min-h-[900px] lg:min-h-[720px]">
+    <section className="relative isolate min-h-[760px] overflow-hidden bg-background px-0 pt-0 pb-0 md:min-h-[900px] lg:min-h-[720px]">
       <div className="absolute inset-x-0 bottom-0 h-[300px] md:h-[360px] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[62%]">
         <Image
           src="/assets/hero-bg.webp"
@@ -80,7 +80,7 @@ export async function HeroSection({ services }: { services: Service[] }) {
         />
       </div>
 
-      <Container className="relative z-10 flex min-h-[860px] items-start pb-[320px] pt-28 md:min-h-[900px] md:pb-[380px] lg:min-h-[720px] lg:items-center lg:pb-24 lg:pt-28">
+      <Container className="relative z-10 flex min-h-[760px] items-start pb-[320px] pt-16 md:min-h-[900px] md:pb-[380px] md:pt-28 lg:min-h-[720px] lg:items-center lg:pb-24 lg:pt-28">
         <div className="w-full max-w-xl">
           <p className="eyebrow text-primary">{t.hero.eyebrow}</p>
 

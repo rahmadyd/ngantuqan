@@ -161,6 +161,65 @@ function mapProject(
   return applyTranslations(base, row.translations, locale, PROJECT_FIELDS);
 }
 
+function demoPublishedProjects(
+  options: { categorySlug?: string; search?: string; limit?: number; offset?: number } | undefined,
+  locale: Locale,
+): Project[] {
+  let rows = [...DEMO_PROJECTS];
+  if (options?.categorySlug) {
+    rows = rows.filter((p) => p.category?.slug === options.categorySlug);
+  }
+  if (options?.search) {
+    const q = options.search.toLowerCase();
+    rows = rows.filter((p) => p.title.toLowerCase().includes(q));
+  }
+  const offset = options?.offset ?? 0;
+  const limit = options?.limit ?? rows.length;
+  return rows
+    .slice(offset, offset + limit)
+    .map((row) => mapProject(row as unknown as Record<string, unknown>, locale));
+}
+
+function demoFeaturedProjects(limit: number, locale: Locale): Project[] {
+  return DEMO_PROJECTS.filter((p) => p.is_featured)
+    .slice(0, limit)
+    .map((row) => mapProject(row as unknown as Record<string, unknown>, locale));
+}
+
+function demoProjectBySlug(
+  slug: string,
+  locale: Locale,
+): (Project & { images: Project["images"] }) | null {
+  const found = DEMO_PROJECTS.find((p) => p.slug === slug) ?? null;
+  if (!found) return null;
+  return {
+    ...mapProject(found as unknown as Record<string, unknown>, locale),
+    images: (found.images ?? []).map((image) =>
+      applyTranslations(
+        image as unknown as Record<string, unknown>,
+        image.translations,
+        locale,
+        IMAGE_FIELDS,
+      ) as unknown as ProjectImage,
+    ),
+  } as (Project & { images: Project["images"] });
+}
+
+function demoRelatedProjects(
+  project: Pick<Project, "id" | "category_id">,
+  limit: number,
+  locale: Locale,
+): Project[] {
+  const others = DEMO_PROJECTS.filter((p) => p.id !== project.id);
+  const sameCategory = others.filter(
+    (p) => p.category_id && p.category_id === project.category_id,
+  );
+  const fallback = others.filter((p) => !sameCategory.includes(p));
+  return [...sameCategory, ...fallback]
+    .slice(0, limit)
+    .map((row) => mapProject(row as unknown as Record<string, unknown>, locale));
+}
+
 export async function getPublishedProjects(options?: {
   categorySlug?: string;
   search?: string;
@@ -174,50 +233,41 @@ export async function getPublishedProjects(options?: {
   return cached(key, async () => {
     const supabase = await db();
 
-    if (!supabase) {
-      let rows = [...DEMO_PROJECTS];
+    if (!supabase) return demoPublishedProjects(options, locale);
+
+    try {
+      let query = supabase
+        .from("projects")
+        .select(PROJECT_SELECT)
+        .eq("is_published", true)
+        .order("is_featured", { ascending: false })
+        .order("created_at", { ascending: false });
+
       if (options?.categorySlug) {
-        rows = rows.filter((p) => p.category?.slug === options.categorySlug);
+        // The category list is cached, so this lookup costs nothing extra.
+        const categories = await getCategories("PORTFOLIO", locale);
+        const category = categories.find((c) => c.slug === options.categorySlug);
+        if (category) query = query.eq("category_id", category.id);
       }
+
       if (options?.search) {
-        const q = options.search.toLowerCase();
-        rows = rows.filter((p) => p.title.toLowerCase().includes(q));
+        query = query.ilike("title", `%${options.search}%`);
       }
-      const offset = options?.offset ?? 0;
-      const limit = options?.limit ?? rows.length;
-      return rows
-        .slice(offset, offset + limit)
-        .map((row) => mapProject(row as unknown as Record<string, unknown>, locale));
+
+      if (options?.limit !== undefined) {
+        const offset = options.offset ?? 0;
+        query = query.range(offset, offset + options.limit - 1);
+      }
+
+      const { data, error } = await query;
+      if (error) throw new Error(`Failed to load projects: ${error.message}`);
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) =>
+        mapProject(row, locale),
+      );
+    } catch (error) {
+      console.warn("[content] projects read failed, using demonstration data:", error);
+      return demoPublishedProjects(options, locale);
     }
-
-    let query = supabase
-      .from("projects")
-      .select(PROJECT_SELECT)
-      .eq("is_published", true)
-      .order("is_featured", { ascending: false })
-      .order("created_at", { ascending: false });
-
-    if (options?.categorySlug) {
-      // The category list is cached, so this lookup costs nothing extra.
-      const categories = await getCategories("PORTFOLIO", locale);
-      const category = categories.find((c) => c.slug === options.categorySlug);
-      if (category) query = query.eq("category_id", category.id);
-    }
-
-    if (options?.search) {
-      query = query.ilike("title", `%${options.search}%`);
-    }
-
-    if (options?.limit !== undefined) {
-      const offset = options.offset ?? 0;
-      query = query.range(offset, offset + options.limit - 1);
-    }
-
-    const { data, error } = await query;
-    if (error) throw new Error(`Failed to load projects: ${error.message}`);
-    return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) =>
-      mapProject(row, locale),
-    );
   });
 }
 
@@ -228,24 +278,28 @@ export async function getFeaturedProjects(
   return cached(`projects:featured:${locale}:${limit}`, async () => {
     const supabase = await db();
 
-    if (!supabase) {
-      return DEMO_PROJECTS.filter((p) => p.is_featured)
-        .slice(0, limit)
-        .map((row) => mapProject(row as unknown as Record<string, unknown>, locale));
+    if (!supabase) return demoFeaturedProjects(limit, locale);
+
+    try {
+      const { data, error } = await supabase
+        .from("projects")
+        .select(PROJECT_SELECT)
+        .eq("is_published", true)
+        .eq("is_featured", true)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      if (error) throw new Error(`Failed to load featured projects: ${error.message}`);
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) =>
+        mapProject(row, locale),
+      );
+    } catch (error) {
+      console.warn(
+        "[content] featured projects read failed, using demonstration data:",
+        error,
+      );
+      return demoFeaturedProjects(limit, locale);
     }
-
-    const { data, error } = await supabase
-      .from("projects")
-      .select(PROJECT_SELECT)
-      .eq("is_published", true)
-      .eq("is_featured", true)
-      .order("created_at", { ascending: false })
-      .limit(limit);
-
-    if (error) throw new Error(`Failed to load featured projects: ${error.message}`);
-    return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) =>
-      mapProject(row, locale),
-    );
   });
 }
 
@@ -256,56 +310,47 @@ export async function getProjectBySlug(
   return cached(`project:${locale}:${slug}`, async () => {
     const supabase = await db();
 
-    if (!supabase) {
-      const found = DEMO_PROJECTS.find((p) => p.slug === slug) ?? null;
-      if (!found) return null;
+    if (!supabase) return demoProjectBySlug(slug, locale);
+
+    try {
+      const { data, error } = await supabase
+        .from("projects")
+        .select(PROJECT_SELECT)
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
+
+      if (error) throw new Error(`Failed to load project: ${error.message}`);
+      if (!data) return null;
+      const row = data as unknown as Record<string, unknown>;
+      const project = mapProject(row, locale);
+
+      const { data: images } = await supabase
+        .from("project_images")
+        .select("id, image_url, alt_text, display_order, translations")
+        .eq("project_id", project.id)
+        .order("display_order", { ascending: true });
+
+      const list = (images ?? []) as NonNullable<Project["images"]>;
+
       return {
-        ...mapProject(found as unknown as Record<string, unknown>, locale),
-        images: (found.images ?? []).map((image) =>
+        ...project,
+        images: list.map((image) =>
           applyTranslations(
-            image as unknown as Record<string, unknown>,
+            {
+              ...image,
+              image_url: resolveMediaSrc(image.image_url) ?? image.image_url,
+            },
             image.translations,
             locale,
             IMAGE_FIELDS,
-          ) as unknown as ProjectImage,
+          ),
         ),
-      } as (Project & { images: Project["images"] });
+      };
+    } catch (error) {
+      console.warn("[content] project read failed, using demonstration data:", error);
+      return demoProjectBySlug(slug, locale);
     }
-
-    const { data, error } = await supabase
-      .from("projects")
-      .select(PROJECT_SELECT)
-      .eq("slug", slug)
-      .eq("is_published", true)
-      .maybeSingle();
-
-    if (error) throw new Error(`Failed to load project: ${error.message}`);
-    if (!data) return null;
-    const row = data as unknown as Record<string, unknown>;
-    const project = mapProject(row, locale);
-
-    const { data: images } = await supabase
-      .from("project_images")
-      .select("id, image_url, alt_text, display_order, translations")
-      .eq("project_id", project.id)
-      .order("display_order", { ascending: true });
-
-    const list = (images ?? []) as NonNullable<Project["images"]>;
-
-    return {
-      ...project,
-      images: list.map((image) =>
-        applyTranslations(
-          {
-            ...image,
-            image_url: resolveMediaSrc(image.image_url) ?? image.image_url,
-          },
-          image.translations,
-          locale,
-          IMAGE_FIELDS,
-        ),
-      ),
-    };
   });
 }
 
@@ -326,40 +371,37 @@ export async function getRelatedProjects(
     async () => {
       const supabase = await db();
 
-      if (!supabase) {
-        const others = DEMO_PROJECTS.filter((p) => p.id !== project.id);
-        const sameCategory = others.filter(
+      if (!supabase) return demoRelatedProjects(project, limit, locale);
+
+      try {
+        const { data, error } = await supabase
+          .from("projects")
+          .select(PROJECT_SELECT)
+          .eq("is_published", true)
+          .neq("id", project.id)
+          .order("is_featured", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(limit * 3);
+
+        if (error) throw new Error(`Failed to load related projects: ${error.message}`);
+
+        const rows = ((data ?? []) as unknown as Record<string, unknown>[]).map(
+          (row) => mapProject(row, locale),
+        );
+
+        const sameCategory = rows.filter(
           (p) => p.category_id && p.category_id === project.category_id,
         );
-        const fallback = others.filter(
-          (p) => !sameCategory.includes(p),
+        const fallback = rows.filter((p) => !sameCategory.includes(p));
+
+        return [...sameCategory, ...fallback].slice(0, limit);
+      } catch (error) {
+        console.warn(
+          "[content] related projects read failed, using demonstration data:",
+          error,
         );
-        return [...sameCategory, ...fallback]
-          .slice(0, limit)
-          .map((row) => mapProject(row as unknown as Record<string, unknown>, locale));
+        return demoRelatedProjects(project, limit, locale);
       }
-
-      const { data, error } = await supabase
-        .from("projects")
-        .select(PROJECT_SELECT)
-        .eq("is_published", true)
-        .neq("id", project.id)
-        .order("is_featured", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(limit * 3);
-
-      if (error) return [];
-
-      const rows = ((data ?? []) as unknown as Record<string, unknown>[]).map(
-        (row) => mapProject(row, locale),
-      );
-
-      const sameCategory = rows.filter(
-        (p) => p.category_id && p.category_id === project.category_id,
-      );
-      const fallback = rows.filter((p) => !sameCategory.includes(p));
-
-      return [...sameCategory, ...fallback].slice(0, limit);
     },
   );
 }
@@ -381,16 +423,23 @@ export async function getCategories(
       );
     }
 
-    const { data, error } = await supabase
-      .from("categories")
-      .select("id, name, slug, type, description, translations")
-      .eq("type", type)
-      .order("name", { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, slug, type, description, translations")
+        .eq("type", type)
+        .order("name", { ascending: true });
 
-    if (error) throw new Error(`Failed to load categories: ${error.message}`);
-    return (
-      (data ?? []) as unknown as Parameters<typeof toCategory>[0][]
-    ).map((row) => toCategory(row, locale));
+      if (error) throw new Error(`Failed to load categories: ${error.message}`);
+      return (
+        (data ?? []) as unknown as Parameters<typeof toCategory>[0][]
+      ).map((row) => toCategory(row, locale));
+    } catch (error) {
+      console.warn("[content] categories read failed, using demonstration data:", error);
+      return DEMO_CATEGORIES.filter((c) => c.type === type).map((c) =>
+        toCategory(c, locale),
+      );
+    }
   });
 }
 
@@ -422,28 +471,55 @@ function mapService(
   return applyTranslations(base, row.translations, locale, SERVICE_FIELDS);
 }
 
+function demoActiveServices(locale: Locale): Service[] {
+  return DEMO_SERVICES.filter((s) => s.is_active).map((row) =>
+    mapService(row as unknown as Record<string, unknown>, locale),
+  );
+}
+
+function demoServiceBySlug(
+  slug: string,
+  locale: Locale,
+): (Service & { packages: NonNullable<Service["packages"]> }) | null {
+  const service = DEMO_SERVICES.find((s) => s.slug === slug);
+  if (!service) return null;
+  return {
+    ...mapService(service as unknown as Record<string, unknown>, locale),
+    packages: (service.packages?.filter((p) => p.is_active) ?? []).map(
+      (pkg) =>
+        applyTranslations(
+          pkg as unknown as Record<string, unknown>,
+          pkg.translations,
+          locale,
+          PACKAGE_FIELDS,
+        ) as unknown as NonNullable<Service["packages"]>[number],
+    ),
+  };
+}
+
 export async function getActiveServices(
   locale: Locale = DEFAULT_LOCALE,
 ): Promise<Service[]> {
   return cached(`services:active:${locale}`, async () => {
     const supabase = await db();
 
-    if (!supabase) {
-      return DEMO_SERVICES.filter((s) => s.is_active).map((row) =>
-        mapService(row as unknown as Record<string, unknown>, locale),
+    if (!supabase) return demoActiveServices(locale);
+
+    try {
+      const { data, error } = await supabase
+        .from("services")
+        .select(SERVICE_SELECT)
+        .eq("is_active", true)
+        .order("created_at", { ascending: true });
+
+      if (error) throw new Error(`Failed to load services: ${error.message}`);
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) =>
+        mapService(row, locale),
       );
+    } catch (error) {
+      console.warn("[content] services read failed, using demonstration data:", error);
+      return demoActiveServices(locale);
     }
-
-    const { data, error } = await supabase
-      .from("services")
-      .select(SERVICE_SELECT)
-      .eq("is_active", true)
-      .order("created_at", { ascending: true });
-
-    if (error) throw new Error(`Failed to load services: ${error.message}`);
-    return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) =>
-      mapService(row, locale),
-    );
   });
 }
 
@@ -454,65 +530,55 @@ export async function getServiceBySlug(
   return cached(`service:${locale}:${slug}`, async () => {
     const supabase = await db();
 
-    if (!supabase) {
-      const service = DEMO_SERVICES.find((s) => s.slug === slug);
-      if (!service) return null;
+    if (!supabase) return demoServiceBySlug(slug, locale);
+
+    try {
+      const { data, error } = await supabase
+        .from("services")
+        .select(SERVICE_SELECT)
+        .eq("slug", slug)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (error) throw new Error(`Failed to load service: ${error.message}`);
+      if (!data) return null;
+      const service = mapService(data as unknown as Record<string, unknown>, locale);
+
+      const { data: packages } = await supabase
+        .from("service_packages")
+        .select(
+          "id, service_id, name, description, price, revision_count, delivery_days, features, is_active, translations",
+        )
+        .eq("service_id", service.id)
+        .eq("is_active", true)
+        .order("price", { ascending: true });
+
       return {
-        ...mapService(service as unknown as Record<string, unknown>, locale),
-        packages: (service.packages?.filter((p) => p.is_active) ?? []).map(
-          (pkg) =>
+        ...service,
+        packages: ((packages ?? []) as unknown as Record<string, unknown>[]).map(
+          (row) =>
             applyTranslations(
-              pkg as unknown as Record<string, unknown>,
-              pkg.translations,
+              {
+                id: row.id as string,
+                service_id: row.service_id as string,
+                name: row.name as string,
+                description: (row.description as string | null) ?? null,
+                price: Number(row.price ?? 0),
+                revision_count: Number(row.revision_count ?? 0),
+                delivery_days: Number(row.delivery_days ?? 0),
+                features: (row.features as string[] | null) ?? null,
+                is_active: Boolean(row.is_active),
+              },
+              row.translations,
               locale,
               PACKAGE_FIELDS,
-            ) as unknown as NonNullable<Service["packages"]>[number],
-        ),
+            ),
+        ) as NonNullable<Service["packages"]>,
       };
+    } catch (error) {
+      console.warn("[content] service read failed, using demonstration data:", error);
+      return demoServiceBySlug(slug, locale);
     }
-
-    const { data, error } = await supabase
-      .from("services")
-      .select(SERVICE_SELECT)
-      .eq("slug", slug)
-      .eq("is_active", true)
-      .maybeSingle();
-
-    if (error) throw new Error(`Failed to load service: ${error.message}`);
-    if (!data) return null;
-    const service = mapService(data as unknown as Record<string, unknown>, locale);
-
-    const { data: packages } = await supabase
-      .from("service_packages")
-      .select(
-        "id, service_id, name, description, price, revision_count, delivery_days, features, is_active, translations",
-      )
-      .eq("service_id", service.id)
-      .eq("is_active", true)
-      .order("price", { ascending: true });
-
-    return {
-      ...service,
-      packages: ((packages ?? []) as unknown as Record<string, unknown>[]).map(
-        (row) =>
-          applyTranslations(
-            {
-              id: row.id as string,
-              service_id: row.service_id as string,
-              name: row.name as string,
-              description: (row.description as string | null) ?? null,
-              price: Number(row.price ?? 0),
-              revision_count: Number(row.revision_count ?? 0),
-              delivery_days: Number(row.delivery_days ?? 0),
-              features: (row.features as string[] | null) ?? null,
-              is_active: Boolean(row.is_active),
-            },
-            row.translations,
-            locale,
-            PACKAGE_FIELDS,
-          ),
-      ) as NonNullable<Service["packages"]>,
-    };
   });
 }
 
@@ -554,6 +620,63 @@ function mapProduct(
   return applyTranslations(base, row.translations, locale, PRODUCT_FIELDS);
 }
 
+function demoPublishedProducts(
+  options:
+    | {
+        categorySlug?: string;
+        search?: string;
+        sort?: "newest" | "price-asc" | "price-desc";
+        limit?: number;
+        offset?: number;
+      }
+    | undefined,
+  locale: Locale,
+): Product[] {
+  let rows = [...DEMO_PRODUCTS];
+  if (options?.categorySlug) {
+    rows = rows.filter((p) => p.category?.slug === options.categorySlug);
+  }
+  if (options?.search) {
+    const q = options.search.toLowerCase();
+    rows = rows.filter((p) => p.title.toLowerCase().includes(q));
+  }
+  if (options?.sort === "price-asc") {
+    rows.sort((a, b) => a.price - b.price);
+  } else if (options?.sort === "price-desc") {
+    rows.sort((a, b) => b.price - a.price);
+  }
+  const offset = options?.offset ?? 0;
+  const limit = options?.limit ?? rows.length;
+  return rows
+    .slice(offset, offset + limit)
+    .map((row) => mapProduct(row as unknown as Record<string, unknown>, locale));
+}
+
+function demoFeaturedProducts(limit: number, locale: Locale): Product[] {
+  return DEMO_PRODUCTS.filter((p) => p.is_featured)
+    .slice(0, limit)
+    .map((row) => mapProduct(row as unknown as Record<string, unknown>, locale));
+}
+
+function demoProductBySlug(
+  slug: string,
+  locale: Locale,
+): (Product & { images: Product["images"] }) | null {
+  const found = DEMO_PRODUCTS.find((p) => p.slug === slug) ?? null;
+  if (!found) return null;
+  return {
+    ...mapProduct(found as unknown as Record<string, unknown>, locale),
+    images: (found.images ?? []).map((image) =>
+      applyTranslations(
+        image as unknown as Record<string, unknown>,
+        image.translations,
+        locale,
+        IMAGE_FIELDS,
+      ) as unknown as ProductImage,
+    ),
+  } as (Product & { images: Product["images"] });
+}
+
 export async function getPublishedProducts(options?: {
   categorySlug?: string;
   search?: string;
@@ -568,59 +691,45 @@ export async function getPublishedProducts(options?: {
   return cached(key, async () => {
     const supabase = await db();
 
-    if (!supabase) {
-      let rows = [...DEMO_PRODUCTS];
+    if (!supabase) return demoPublishedProducts(options, locale);
+
+    try {
+      let query = supabase
+        .from("products")
+        .select(PRODUCT_SELECT)
+        .eq("is_published", true);
+
       if (options?.categorySlug) {
-        rows = rows.filter((p) => p.category?.slug === options.categorySlug);
+        // The category list is cached, so this lookup costs nothing extra.
+        const categories = await getCategories("PRODUCT", locale);
+        const category = categories.find((c) => c.slug === options.categorySlug);
+        if (category) query = query.eq("category_id", category.id);
       }
-      if (options?.search) {
-        const q = options.search.toLowerCase();
-        rows = rows.filter((p) => p.title.toLowerCase().includes(q));
-      }
+
+      if (options?.search) query = query.ilike("title", `%${options.search}%`);
+
       if (options?.sort === "price-asc") {
-        rows.sort((a, b) => a.price - b.price);
+        query = query.order("price", { ascending: true });
       } else if (options?.sort === "price-desc") {
-        rows.sort((a, b) => b.price - a.price);
+        query = query.order("price", { ascending: false });
+      } else {
+        query = query.order("created_at", { ascending: false });
       }
-      const offset = options?.offset ?? 0;
-      const limit = options?.limit ?? rows.length;
-      return rows
-        .slice(offset, offset + limit)
-        .map((row) => mapProduct(row as unknown as Record<string, unknown>, locale));
+
+      if (options?.limit !== undefined) {
+        const offset = options.offset ?? 0;
+        query = query.range(offset, offset + options.limit - 1);
+      }
+
+      const { data, error } = await query;
+      if (error) throw new Error(`Failed to load products: ${error.message}`);
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) =>
+        mapProduct(row, locale),
+      );
+    } catch (error) {
+      console.warn("[content] products read failed, using demonstration data:", error);
+      return demoPublishedProducts(options, locale);
     }
-
-    let query = supabase
-      .from("products")
-      .select(PRODUCT_SELECT)
-      .eq("is_published", true);
-
-    if (options?.categorySlug) {
-      // The category list is cached, so this lookup costs nothing extra.
-      const categories = await getCategories("PRODUCT", locale);
-      const category = categories.find((c) => c.slug === options.categorySlug);
-      if (category) query = query.eq("category_id", category.id);
-    }
-
-    if (options?.search) query = query.ilike("title", `%${options.search}%`);
-
-    if (options?.sort === "price-asc") {
-      query = query.order("price", { ascending: true });
-    } else if (options?.sort === "price-desc") {
-      query = query.order("price", { ascending: false });
-    } else {
-      query = query.order("created_at", { ascending: false });
-    }
-
-    if (options?.limit !== undefined) {
-      const offset = options.offset ?? 0;
-      query = query.range(offset, offset + options.limit - 1);
-    }
-
-    const { data, error } = await query;
-    if (error) throw new Error(`Failed to load products: ${error.message}`);
-    return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) =>
-      mapProduct(row, locale),
-    );
   });
 }
 
@@ -631,24 +740,28 @@ export async function getFeaturedProducts(
   return cached(`products:featured:${locale}:${limit}`, async () => {
     const supabase = await db();
 
-    if (!supabase) {
-      return DEMO_PRODUCTS.filter((p) => p.is_featured)
-        .slice(0, limit)
-        .map((row) => mapProduct(row as unknown as Record<string, unknown>, locale));
+    if (!supabase) return demoFeaturedProducts(limit, locale);
+
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select(PRODUCT_SELECT)
+        .eq("is_published", true)
+        .eq("is_featured", true)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      if (error) throw new Error(`Failed to load featured products: ${error.message}`);
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) =>
+        mapProduct(row, locale),
+      );
+    } catch (error) {
+      console.warn(
+        "[content] featured products read failed, using demonstration data:",
+        error,
+      );
+      return demoFeaturedProducts(limit, locale);
     }
-
-    const { data, error } = await supabase
-      .from("products")
-      .select(PRODUCT_SELECT)
-      .eq("is_published", true)
-      .eq("is_featured", true)
-      .order("created_at", { ascending: false })
-      .limit(limit);
-
-    if (error) throw new Error(`Failed to load featured products: ${error.message}`);
-    return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) =>
-      mapProduct(row, locale),
-    );
   });
 }
 
@@ -659,62 +772,81 @@ export async function getProductBySlug(
   return cached(`product:${locale}:${slug}`, async () => {
     const supabase = await db();
 
-    if (!supabase) {
-      const found = DEMO_PRODUCTS.find((p) => p.slug === slug) ?? null;
-      if (!found) return null;
+    if (!supabase) return demoProductBySlug(slug, locale);
+
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select(PRODUCT_SELECT)
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
+
+      if (error) throw new Error(`Failed to load product: ${error.message}`);
+      if (!data) return null;
+
+      const product = mapProduct(data as unknown as Record<string, unknown>, locale);
+
+      const { data: images } = await supabase
+        .from("product_images")
+        .select("id, image_url, alt_text, display_order, translations")
+        .eq("product_id", product.id)
+        .order("display_order", { ascending: true });
+
+      const list = (images ?? []) as NonNullable<Product["images"]>;
+
       return {
-        ...mapProduct(found as unknown as Record<string, unknown>, locale),
-        images: (found.images ?? []).map((image) =>
+        ...product,
+        images: list.map((image) =>
           applyTranslations(
-            image as unknown as Record<string, unknown>,
+            {
+              ...image,
+              image_url: resolveMediaSrc(image.image_url) ?? image.image_url,
+            },
             image.translations,
             locale,
             IMAGE_FIELDS,
-          ) as unknown as ProductImage,
+          ),
         ),
-      } as (Product & { images: Product["images"] });
+      };
+    } catch (error) {
+      console.warn("[content] product read failed, using demonstration data:", error);
+      return demoProductBySlug(slug, locale);
     }
-
-    const { data, error } = await supabase
-      .from("products")
-      .select(PRODUCT_SELECT)
-      .eq("slug", slug)
-      .eq("is_published", true)
-      .maybeSingle();
-
-    if (error) throw new Error(`Failed to load product: ${error.message}`);
-    if (!data) return null;
-
-    const product = mapProduct(data as unknown as Record<string, unknown>, locale);
-
-    const { data: images } = await supabase
-      .from("product_images")
-      .select("id, image_url, alt_text, display_order, translations")
-      .eq("product_id", product.id)
-      .order("display_order", { ascending: true });
-
-    const list = (images ?? []) as NonNullable<Product["images"]>;
-
-    return {
-      ...product,
-      images: list.map((image) =>
-        applyTranslations(
-          {
-            ...image,
-            image_url: resolveMediaSrc(image.image_url) ?? image.image_url,
-          },
-          image.translations,
-          locale,
-          IMAGE_FIELDS,
-        ),
-      ),
-    };
   });
 }
 
 /* ------------------------------------------------------------------ */
 /* Testimonials                                                       */
 /* ------------------------------------------------------------------ */
+
+function demoTestimonials(limit: number | undefined, locale: Locale): Testimonial[] {
+  const rows = DEMO_TESTIMONIALS.filter((t) => t.is_published);
+  return (limit ? rows.slice(0, limit) : rows).map((row) =>
+    applyTranslations(
+      {
+        id: row.id,
+        customer_name: row.customer_name,
+        customer_role: row.customer_role,
+        content: row.content,
+        avatar_url: row.avatar_url,
+        project_id: row.project_id,
+        is_featured: row.is_featured,
+        is_published: row.is_published,
+        project: row.project
+          ? {
+              id: row.project.id,
+              title: row.project.title,
+              slug: row.project.slug,
+            }
+          : null,
+      },
+      row.translations,
+      locale,
+      TESTIMONIAL_FIELDS,
+    ),
+  );
+}
 
 export async function getPublishedTestimonials(
   limit?: number,
@@ -723,73 +855,55 @@ export async function getPublishedTestimonials(
   return cached(`testimonials:${locale}:${limit ?? "all"}`, async () => {
     const supabase = await db();
 
-    if (!supabase) {
-      const rows = DEMO_TESTIMONIALS.filter((t) => t.is_published);
-      return (limit ? rows.slice(0, limit) : rows).map((row) =>
-        applyTranslations(
-          {
-            id: row.id,
-            customer_name: row.customer_name,
-            customer_role: row.customer_role,
-            content: row.content,
-            avatar_url: row.avatar_url,
-            project_id: row.project_id,
-            is_featured: row.is_featured,
-            is_published: row.is_published,
-            project: row.project
-              ? {
-                  id: row.project.id,
-                  title: row.project.title,
-                  slug: row.project.slug,
-                }
-              : null,
-          },
+    if (!supabase) return demoTestimonials(limit, locale);
+
+    try {
+      let query = supabase
+        .from("testimonials")
+        .select(
+          "id, customer_name, customer_role, content, avatar_url, project_id, is_featured, is_published, translations, projects ( id, title, slug )",
+        )
+        .eq("is_published", true)
+        .order("is_featured", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (limit) query = query.limit(limit);
+
+      const { data, error } = await query;
+      if (error) throw new Error(`Failed to load testimonials: ${error.message}`);
+
+      return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => {
+        const project = row.projects as
+          | { id: string; title: string; slug: string }
+          | null
+          | undefined;
+        const base = {
+          id: row.id as string,
+          customer_name: row.customer_name as string,
+          customer_role: (row.customer_role as string | null) ?? null,
+          content: row.content as string,
+          avatar_url: resolveMediaSrc(row.avatar_url as string | null),
+          project_id: (row.project_id as string | null) ?? null,
+          is_featured: Boolean(row.is_featured),
+          is_published: Boolean(row.is_published),
+          project: project
+            ? { id: project.id, title: project.title, slug: project.slug }
+            : null,
+        };
+        return applyTranslations(
+          base,
           row.translations,
           locale,
           TESTIMONIAL_FIELDS,
-        ),
+        );
+      });
+    } catch (error) {
+      console.warn(
+        "[content] testimonials read failed, using demonstration data:",
+        error,
       );
+      return demoTestimonials(limit, locale);
     }
-
-    let query = supabase
-      .from("testimonials")
-      .select(
-        "id, customer_name, customer_role, content, avatar_url, project_id, is_featured, is_published, translations, projects ( id, title, slug )",
-      )
-      .eq("is_published", true)
-      .order("is_featured", { ascending: false })
-      .order("created_at", { ascending: false });
-
-    if (limit) query = query.limit(limit);
-
-    const { data, error } = await query;
-    if (error) throw new Error(`Failed to load testimonials: ${error.message}`);
-
-    return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => {
-      const project = row.projects as
-        | { id: string; title: string; slug: string }
-        | null
-        | undefined;
-      const base = {
-        id: row.id as string,
-        customer_name: row.customer_name as string,
-        customer_role: (row.customer_role as string | null) ?? null,
-        content: row.content as string,
-        avatar_url: resolveMediaSrc(row.avatar_url as string | null),
-        project_id: (row.project_id as string | null) ?? null,
-        is_featured: Boolean(row.is_featured),
-        is_published: Boolean(row.is_published),
-        project: project
-          ? { id: project.id, title: project.title, slug: project.slug }
-          : null,
-      };
-      return applyTranslations(
-        base,
-        row.translations,
-        locale,
-        TESTIMONIAL_FIELDS,
-      );
-    });
   });
 }
 

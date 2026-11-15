@@ -79,7 +79,7 @@ export async function ProductCard({
           {product.description}
         </p>
 
-        <div className="mt-auto flex items-end justify-between gap-4 pt-5">
+        <div className="mt-auto flex flex-wrap items-end justify-between gap-x-4 gap-y-2 pt-5">
           <Price
             amount={product.price}
             discountAmount={product.discount_price}
