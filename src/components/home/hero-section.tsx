@@ -63,74 +63,57 @@ export async function HeroSection({ services }: { services: Service[] }) {
   };
 
   return (
-    <section className="relative isolate min-h-[580px] overflow-hidden bg-brand px-0 pt-24 pb-20 md:min-h-[660px] md:pt-32 md:pb-28">
-      <Image
-        src="/assets/hero-bg.webp"
-        alt=""
-        fill
-        sizes="100vw"
-        loading="eager"
-        fetchPriority="high"
-        className="object-cover object-[center_top_18%]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand/35 via-background/10 to-background/95"
-      />
-      {/* Gentle bottom fade into the warm cream page background */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background via-background/70 to-transparent"
-      />
+    <section className="relative isolate min-h-[860px] overflow-hidden bg-background px-0 pt-0 pb-0 md:min-h-[900px] lg:min-h-[720px]">
+      <div className="absolute inset-x-0 bottom-0 h-[300px] md:h-[360px] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[62%]">
+        <Image
+          src="/assets/hero-bg.webp"
+          alt=""
+          fill
+          sizes="(max-width: 1023px) 100vw, 62vw"
+          loading="eager"
+          fetchPriority="high"
+          className="object-cover object-[center_58%] md:object-center"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-t from-background via-background/15 to-transparent lg:bg-gradient-to-r lg:from-background lg:via-background/25 lg:to-transparent"
+        />
+      </div>
 
-      <Container className="relative z-10">
-        <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
-          {/* Eyebrow badge: high-contrast frosted paper pill */}
-          <span className="inline-flex items-center rounded-full border-2 border-border-strong bg-surface/95 px-5 py-1.5 font-label text-xs font-bold uppercase tracking-wider text-text shadow-sm backdrop-blur-md">
-            {t.hero.eyebrow}
-          </span>
+      <Container className="relative z-10 flex min-h-[860px] items-start pb-[320px] pt-28 md:min-h-[900px] md:pb-[380px] lg:min-h-[720px] lg:items-center lg:pb-24 lg:pt-28">
+        <div className="w-full max-w-xl">
+          <p className="eyebrow text-primary">{t.hero.eyebrow}</p>
 
-          <h1
-            className="mt-6 max-w-4xl font-display text-[clamp(3rem,8.5vw,6.25rem)] leading-[0.98] font-bold tracking-tight text-balance text-background"
-            style={{
-              WebkitTextStroke: "3px var(--text)",
-              textShadow:
-                "0 4px 0 var(--text), 0 8px 24px rgba(36, 53, 44, 0.45)",
-            }}
-          >
+          <h1 className="mt-5 max-w-2xl font-display text-[clamp(3.75rem,10vw,7rem)] leading-[0.9] font-bold tracking-[-0.04em] text-balance text-text">
             {t.hero.title}
           </h1>
 
-          {/* Lede: frosted warm paper plate protecting text from the busy village houses */}
-          <div className="mt-6 max-w-2xl rounded-2xl border-2 border-border-strong/70 bg-surface/90 px-6 py-4 shadow-sm backdrop-blur-md">
-            <p className="text-center font-body text-base font-semibold leading-relaxed text-text md:text-lg">
-              {t.hero.lede}
-            </p>
-          </div>
+          <p className="mt-6 max-w-xl font-body text-lg leading-relaxed text-muted md:text-xl">
+            {t.hero.lede}
+          </p>
 
-          {/* CTA & secondary contact link */}
-          <div className="mt-8 flex flex-col items-center gap-3.5">
+          <div className="mt-8 flex flex-wrap items-center gap-4">
             <ButtonLink
               href="/work"
               size="lg"
-              className="rounded-full border-[2.5px] border-text bg-surface px-10 py-3.5 font-display text-base font-bold tracking-wide text-text shadow-[0_4px_0_#24352c] transition-all duration-150 hover:translate-y-1 hover:shadow-none active:translate-y-1 active:shadow-none"
+              className="rounded-full border-2 border-text bg-primary px-8 font-display text-base font-bold text-on-primary shadow-[0_4px_0_#24352c] transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-[0_5px_0_#24352c] active:translate-y-0.5 active:shadow-[0_2px_0_#24352c]"
             >
               {t.hero.ctaDiscover}
             </ButtonLink>
             <Link
               href="/contact"
-              className="inline-flex min-h-11 items-center rounded-full border border-border-strong/60 bg-surface/90 px-5 font-label text-xs font-bold uppercase tracking-wider text-text shadow-xs backdrop-blur-sm transition-all hover:border-primary hover:bg-surface hover:text-primary"
+              className="inline-flex min-h-11 items-center border-b-2 border-transparent px-1 font-label text-sm font-semibold text-text transition-colors hover:border-primary hover:text-primary"
             >
               {t.hero.ctaContact}
             </Link>
           </div>
 
           {stats.length > 0 ? (
-            <dl className="mt-14 grid w-full max-w-2xl grid-cols-3 gap-4 border-t-2 border-border-strong/60 pt-7 md:gap-8">
+            <dl className="mt-10 grid max-w-lg grid-cols-3 gap-5 border-t border-border-strong/70 pt-6">
               {stats.map((stat) => (
                 <div key={stat.label}>
-                  <dt className="eyebrow text-text">{statLabels[stat.label]}</dt>
-                  <dd className="mt-1.5 font-display text-2xl font-semibold text-text md:text-3xl">
+                  <dt className="eyebrow">{statLabels[stat.label]}</dt>
+                  <dd className="mt-1 font-display text-2xl font-semibold text-text">
                     {stat.value}
                   </dd>
                 </div>

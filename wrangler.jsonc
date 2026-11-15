@@ -38,14 +38,14 @@
   "vars": {
     // Public values. The publishable key is public by design — it ships to
     // the browser — but the service key never appears here.
-    "NEXT_PUBLIC_SITE_URL": "https://ngantuqan.com",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://YOUR-PROJECT.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_REPLACE_ME",
+    "NEXT_PUBLIC_SITE_URL": "https://www.ngantuqan.xyz",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://jpkjlwotjfoirhfflryk.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_0iA8mCfZeLOWzUn419trPQ_mnP3J8kQ",
     "NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET": "public-media",
 
     "STUDIO_NAME": "ngantuqan",
     "STUDIO_EMAIL": "hello@ngantuqan.studio",
-    "ADMIN_EMAIL": "admin@ngantuqan.studio",
+    "ADMIN_EMAIL": "omengcreation@gmail.com",
     "RESEND_FROM_EMAIL": "ngantuqan <hello@ngantuqan.studio>",
     "PAYMENT_PROVIDER": "manual",
 

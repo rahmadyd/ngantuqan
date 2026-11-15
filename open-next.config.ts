@@ -8,7 +8,9 @@ import { defineCloudflareConfig } from "@opennextjs/cloudflare";
  * cache can be turned on later by adding an R2 bucket binding and the
  * `r2IncrementalCache` override (see the OpenNext caching guide).
  */
-export default {
+const config = {
   ...defineCloudflareConfig(),
   buildCommand: "next build",
 };
+
+export default config;
